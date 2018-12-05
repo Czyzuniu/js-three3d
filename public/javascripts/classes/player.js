@@ -1,3 +1,5 @@
+import Rocket from "./rocket.js";
+
 export default class Player {
   get z() {
     return this._z;
@@ -33,8 +35,10 @@ export default class Player {
     this._x = x
     this._y = y
     this._z = z
+    this.rockets = []
     this.prevTime = performance.now();
     this.velocity = new THREE.Vector3();
+    this.mesh = null
 
     this.moveForward = false;
     this.moveBackward = false;
@@ -42,6 +46,8 @@ export default class Player {
     this.moveRight = false;
     this.moveUp = false
     this.moveDown = false
+
+
 
   }
 
@@ -75,6 +81,8 @@ export default class Player {
 
     if (this.moveLeft ) {
       // this.velocity.x -= 4000.0 * delta;
+
+        console.log(this.mesh.position)
       this.mesh.rotateOnAxis( new THREE.Vector3(0,1,0), rotateAngle);
     }
 
@@ -120,23 +128,75 @@ export default class Player {
       case 68: // d
         this.moveRight = true;
         break;
-      case 32: // space
-        this.moveUp = true;
-        break;
       case 69: // e
         this.moveDown = true;
         break;
     }
   }
 
+  shoot(scene) {
+      let rocket = new Rocket(this.mesh.position.x, this.mesh.position.y, this.mesh.position.z)
+      console.log('player at', this.mesh.position)
+      this.rockets.push(rocket)
+      rocket.draw(scene)
+  }
+
   draw() {
+      // return new Promise((resolve) => {
+      //     const mtlLoader = new THREE.MTLLoader();
+      //     mtlLoader.setPath( '/images/models/h2f/' );
+      //     const url = "f.mtl";
+      //     mtlLoader.load( url, ( materials ) => {
+      //         materials.preload();
+      //         const objLoader = new THREE.OBJLoader();
+      //         objLoader.setMaterials( materials );
+      //         objLoader.setPath( '/images/models/h2f/' );
+      //         objLoader.load( 'f.obj', ( object ) =>{
+      //             this.mesh = object
+      //             console.log('loaded')
+      //             resolve(object)
+      //         }, function ( xhr ) {
+      //             console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+      //         }, function ( error ) {
+      //             console.log( 'An error happened', error);
+      //         } );
+      //     })
+      // });
 
-    let material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
-    let geometry = new THREE.BoxGeometry(10, 10, 10);
-    this.mesh = new THREE.Mesh( geometry, material );
-    this.mesh.position.z = -50
 
-    return this.mesh
+      return new Promise((resolve) => {
+          const loader = new THREE.OBJLoader();
+          let textureLoader = new THREE.TextureLoader();
+          textureLoader.load( '/images/textures/space_ship.jpg', (texture) => {
+              texture.wrapS = THREE.RepeatWrapping;
+              texture.wrapT = THREE.RepeatWrapping;
+              texture.repeat.set( 4, 4 );
+              let material = new THREE.MeshBasicMaterial({map: texture});
+              console.log(material)
+              loader.load(
+                  '/images/models/h2f/model.obj',
+                   (object) => {
+                       this.mesh = object
+
+                       this.mesh.traverse( function ( node ) {
+                           if ( node.isMesh ) {
+                               console.log(node)
+                               node.material = material;
+                           }
+                       } );
+
+                      resolve(this.mesh)
+                  },
+                  function ( xhr ) {
+                      console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+                  },
+                  function ( error ) {
+                      console.log( 'An error happened' );
+                  }
+              );
+          })
+      })
+
   }
 
   stop(event) {

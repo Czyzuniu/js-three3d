@@ -6,16 +6,13 @@ import World from "./classes/world.js";
 import Star from "./classes/star.js"
 import Player from "./classes/player.js"
 
+
 let camera, scene, renderer;
 let world
 let player
-let controls
-let orbitControl
 const width =  window.innerWidth
 const height = window.innerHeight
 let stars = []
-
-
 let locked = true
 
 
@@ -24,21 +21,23 @@ function init() {
     world = new World(100)
 
     camera = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 1, 2000);
-    camera.position.set(0,10,20);
+    camera.position.set(0,4,10);
     scene = new THREE.Scene();
 
     player = new Player(0,0,0)
 
 
-    scene.add(player.draw())
 
-    player.mesh.add(camera)
+    player.draw().then((obj) => {
+        scene.add(obj)
+        obj.add(camera)
+    })
 
 
     //controls = new THREE.PointerLockControls(player.mesh)
 
 
-    let light = new THREE.AmbientLight(0x404040); // soft white light
+    let light = new THREE.AmbientLight(0xffffff, 100);
     scene.add(light);
 
     world.draw().then((mesh) => {
@@ -53,6 +52,8 @@ function init() {
 
     //scene.add(controls.getObject())
 
+
+
 }
 
 function generateRandomNumber(min , max) {
@@ -63,8 +64,16 @@ function animate() {
 
     requestAnimationFrame( animate );
 
-    player.update()
+    if (player.mesh) {
+        player.update()
 
+        for (let i of player.rockets) {
+            i.move()
+        }
+    }
+
+
+   // player.mesh.rotation.y += 0.01
 
 
     renderer.render( scene,camera );
@@ -84,6 +93,10 @@ function createStars(amount, scene) {
 
 window.addEventListener('keydown', (event) => {
     player.move(event)
+
+    if (event.keyCode == 32) {
+        player.shoot(scene)
+    }
 })
 
 window.addEventListener('keyup', (event) => {
