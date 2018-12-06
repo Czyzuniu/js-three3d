@@ -14,7 +14,7 @@ const width =  window.innerWidth
 const height = window.innerHeight
 let stars = []
 let locked = true
-let players = []
+let allPlayers = []
 
 
 
@@ -25,15 +25,12 @@ function init() {
     camera.position.set(0,4,10);
     scene = new THREE.Scene();
 
-    console.log('ss', socketId)
-
     player = new Player(0,0,0, false, socketId)
 
 
 
     player.draw().then((obj) => {
         scene.add(obj)
-      console.log(obj, 'here')
         obj.add(camera)
     })
 
@@ -102,7 +99,6 @@ window.addEventListener('keydown', (event) => {
 
     //change later
 
-    console.log(player)
     socket.emit('movement', {position: player.mesh.position, id:player.id})
 
     if (event.keyCode == 32) {
@@ -129,7 +125,6 @@ window.play.addEventListener( 'click', function () {
     })
 
   window.addEventListener('keyup', (event) => {
-    console.log(event.keyCode)
     switch (event.keyCode) {
       case 87: // w
         player.moveForward = false
@@ -154,18 +149,30 @@ window.play.addEventListener( 'click', function () {
 
 
   socket.on('players', (players) => {
-    players = players
-
     players.map((player) => {
       if (socket.id != player.id) {
         let otherPlayer = new Player(player.x, player.y, player.z, true,player.id)
         otherPlayer.draw().then((obj) => {
-          console.log(obj, 'ooo')
+          allPlayers.push(otherPlayer)
           scene.add(obj)
         })
       }
     })
 
+  })
+
+  socket.on("movement", (data) => {
+      console.log('myid', player.id)
+      for (let i of data) {
+        if (player.id != i.id) {
+          for (let y of allPlayers) {
+            //console.log(y, 2)
+            if (i.id == y.id) {
+              console.log(y, 'this should move')
+            }
+          }
+        }
+      }
   })
 
 }, false );

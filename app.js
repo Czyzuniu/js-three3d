@@ -46,6 +46,8 @@ io.on('connection', function(socket){
         player.z = data.position.z
       }
     })
+
+    socket.emit("movement", players)
   })
 
   //send players back later

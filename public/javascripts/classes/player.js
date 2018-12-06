@@ -107,7 +107,6 @@ export default class Player {
 
 
   move(event) {
-    console.log(this.isOtherPlayer)
     if (!this.isOtherPlayer) {
       switch (event.keyCode) {
         case 87: // w
@@ -132,7 +131,7 @@ export default class Player {
   shoot(scene) {
       let direction = new THREE.Vector3( 0, 0, -1 ).applyQuaternion( this.mesh.quaternion );
       let rocket = new Rocket(this.mesh.position.x, this.mesh.position.y, this.mesh.position.z, direction)
-      console.log('player at', this.mesh.position)
+
       this.rockets.push(rocket)
       rocket.draw(scene)
   }
@@ -175,7 +174,6 @@ export default class Player {
                        this.mesh.position.set(this.x, this.y, this.z)
                        this.mesh.traverse( function ( node ) {
                            if ( node.isMesh ) {
-                               console.log(node)
                                node.material = material;
                            }
                        } );
