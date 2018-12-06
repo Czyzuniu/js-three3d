@@ -7,51 +7,54 @@ import Star from "./classes/star.js"
 import Player from "./classes/player.js"
 
 
-let camera, scene, renderer;
+let camera, scene, renderer, controls, socket, socketId
 let world
 let player
 const width =  window.innerWidth
 const height = window.innerHeight
 let stars = []
 let locked = true
+let players = []
 
 
 
 function init() {
-    world = new World(100)
+    //world = new World(100)
 
     camera = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 1, 2000);
     camera.position.set(0,4,10);
     scene = new THREE.Scene();
 
-    player = new Player(0,0,0)
+    console.log('ss', socketId)
+
+    player = new Player(0,0,0, false, socketId)
 
 
 
     player.draw().then((obj) => {
         scene.add(obj)
+      console.log(obj, 'here')
         obj.add(camera)
     })
 
 
-    //controls = new THREE.PointerLockControls(player.mesh)
+    //controls = new THREE.PointerLockControls(camera)
 
 
     let light = new THREE.AmbientLight(0xffffff, 100);
     scene.add(light);
 
-    world.draw().then((mesh) => {
-        scene.add(mesh);
-    })
+    // world.draw().then((mesh) => {
+    //     scene.add(mesh);
+    // })
 
-    createStars(5000, scene)
+    createStars(1000, scene)
 
     renderer = new THREE.WebGLRenderer({antialias: true});
     renderer.setSize(width, height);
     document.body.appendChild(renderer.domElement);
 
-    //scene.add(controls.getObject())
-
+   // scene.add(controls.getObject())
 
 
 }
@@ -67,9 +70,12 @@ function animate() {
     if (player.mesh) {
         player.update()
 
-        for (let i of player.rockets) {
-            i.move()
-        }
+      player.rockets.forEach((rocket, index) => {
+        rocket.move()
+        // if (!rocket.isAlive) {
+        //   player.rocket.splice(index, 1);
+        // }
+      })
     }
 
 
@@ -94,51 +100,74 @@ function createStars(amount, scene) {
 window.addEventListener('keydown', (event) => {
     player.move(event)
 
+    //change later
+
+    console.log(player)
+    socket.emit('movement', {position: player.mesh.position, id:player.id})
+
     if (event.keyCode == 32) {
         player.shoot(scene)
     }
 })
 
-window.addEventListener('keyup', (event) => {
+
+
+
+
+
+window.play.addEventListener( 'click', function () {
+
+    socket = io();
+    socket.on('connect', function() {
+      socketId = socket.io.engine.id;
+
+      document.body.requestPointerLock()
+      window.blocker.style.display = 'none'
+
+      init();
+      animate();
+    })
+
+  window.addEventListener('keyup', (event) => {
     console.log(event.keyCode)
     switch (event.keyCode) {
-        case 87: // w
-            player.stop()
-            break;
-        case 83: // s
-          player.stop()
-          break;
-        case 65: // a
-          player.stop()
-          break;
-        case 68: // d
-          player.stop()
-          break;
-        case 32: // d
-          player.stop()
-          break;
-        case 69: // d
-          player.stop()
-          break;
+      case 87: // w
+        player.moveForward = false
+        break;
+      case 83: // s
+        player.moveBackward = false
+        break;
+      case 65: // a
+        player.moveLeft = false
+        break;
+      case 68: // d
+        player.moveRight = false
+        break;
+      case 69: // e
+        player.moveUp = false
+        break;
     }
-})
+  })
+
+    //socket.emit("init", )
 
 
 
+  socket.on('players', (players) => {
+    players = players
 
+    players.map((player) => {
+      if (socket.id != player.id) {
+        let otherPlayer = new Player(player.x, player.y, player.z, true,player.id)
+        otherPlayer.draw().then((obj) => {
+          console.log(obj, 'ooo')
+          scene.add(obj)
+        })
+      }
+    })
 
-
-
-window.blocker.addEventListener( 'click', function () {
-
-    document.body.requestPointerLock()
-    window.blocker.style.display = 'none'
-
-    init();
-    animate();
+  })
 
 }, false );
-
-
 
 

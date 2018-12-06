@@ -25,4 +25,18 @@ body {
     justify-content: center;
     align-items: center;
     font-size: 45px;
+    flex-direction: column;
+}
+
+
+#blocker button {
+    height: 100px;
+    width: 250px;
+    font-size: inherit;
+}
+
+#blocker input {
+    height: 55px;
+    margin: 25px;
+    width: 45%;
 }

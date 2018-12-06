@@ -31,7 +31,7 @@ export default class Player {
     this._radius = value;
   }
 
-  constructor(x,y,z) {
+  constructor(x,y,z, isOtherPlayer, socketId) {
     this._x = x
     this._y = y
     this._z = z
@@ -39,15 +39,16 @@ export default class Player {
     this.prevTime = performance.now();
     this.velocity = new THREE.Vector3();
     this.mesh = null
-
     this.moveForward = false;
     this.moveBackward = false;
     this.moveLeft = false;
     this.moveRight = false;
     this.moveUp = false
     this.moveDown = false
+    this.moveSpeed = 1500
+    this.id = socketId
 
-
+    this.isOtherPlayer = isOtherPlayer
 
   }
 
@@ -68,21 +69,16 @@ export default class Player {
     //this.velocity.y -= 9.8 * 100.0 * delta; // 100.0 = mass
 
     if ( this.moveForward ) {
-      this.velocity.z -= 4000.0 * delta;
-      // let direction = camera.getWorldDirection();
-      // camera.position.add( direction )
-
-      //this.entity.position.z -= 4000.0 * delta;
+      this.velocity.z -= this.moveSpeed * delta;
     }
 
     if (this.moveBackward) {
-      this.velocity.z += 4000.0 * delta;
+      this.velocity.z += this.moveSpeed * delta;
     }
 
     if (this.moveLeft ) {
       // this.velocity.x -= 4000.0 * delta;
-
-        console.log(this.mesh.position)
+        //console.log(this.mesh.position)
       this.mesh.rotateOnAxis( new THREE.Vector3(0,1,0), rotateAngle);
     }
 
@@ -90,13 +86,13 @@ export default class Player {
       this.mesh.rotateOnAxis( new THREE.Vector3(0,1,0), -rotateAngle);
     }
 
-    if (this.moveUp ) {
-      this.velocity.y += 2000.0 * delta;
-    }
+    // if (this.moveUp ) {
+    //   this.velocity.y += this.moveSpeed  * delta;
+    // }
 
-    if (this.moveDown ) {
-      this.velocity.y -= 2000.0 * delta;
-    }
+    // if (this.moveDown ) {
+    //   this.velocity.y -= this.moveSpeed  * delta;
+    // }
 
 
     this.mesh.translateZ(this.velocity.z * delta )
@@ -104,10 +100,6 @@ export default class Player {
     this.mesh.translateY(this.velocity.y * delta )
 
 
-    //this.entity.translateZ(this.velocity.z * delta );
-    //this.entity.position.z = this.controls.getObject().z + 100
-
-    // Save the time for future delta calculations
     this.prevTime = time;
 
 
@@ -115,27 +107,31 @@ export default class Player {
 
 
   move(event) {
-    switch (event.keyCode) {
-      case 87: // w
-        this.moveForward = true;
-        break;
-      case 83: // s
-        this.moveBackward = true;
-        break;
-      case 65: // a
-        this.moveLeft = true;
-        break;
-      case 68: // d
-        this.moveRight = true;
-        break;
-      case 69: // e
-        this.moveDown = true;
-        break;
+    console.log(this.isOtherPlayer)
+    if (!this.isOtherPlayer) {
+      switch (event.keyCode) {
+        case 87: // w
+          this.moveForward = true;
+          break;
+        case 83: // s
+          this.moveBackward = true;
+          break;
+        case 65: // a
+          this.moveLeft = true;
+          break;
+        case 68: // d
+          this.moveRight = true;
+          break;
+        case 69: // e
+          this.moveDown = true;
+          break;
+      }
     }
   }
 
   shoot(scene) {
-      let rocket = new Rocket(this.mesh.position.x, this.mesh.position.y, this.mesh.position.z)
+      let direction = new THREE.Vector3( 0, 0, -1 ).applyQuaternion( this.mesh.quaternion );
+      let rocket = new Rocket(this.mesh.position.x, this.mesh.position.y, this.mesh.position.z, direction)
       console.log('player at', this.mesh.position)
       this.rockets.push(rocket)
       rocket.draw(scene)
@@ -172,26 +168,24 @@ export default class Player {
               texture.wrapT = THREE.RepeatWrapping;
               texture.repeat.set( 4, 4 );
               let material = new THREE.MeshBasicMaterial({map: texture});
-              console.log(material)
               loader.load(
                   '/images/models/h2f/model.obj',
                    (object) => {
                        this.mesh = object
-
+                       this.mesh.position.set(this.x, this.y, this.z)
                        this.mesh.traverse( function ( node ) {
                            if ( node.isMesh ) {
                                console.log(node)
                                node.material = material;
                            }
                        } );
-
                       resolve(this.mesh)
                   },
                   function ( xhr ) {
-                      console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+                      //console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
                   },
                   function ( error ) {
-                      console.log( 'An error happened' );
+                      //console.log( 'An error happened' );
                   }
               );
           })
@@ -199,14 +193,5 @@ export default class Player {
 
   }
 
-  stop(event) {
-    this.moveBackward = false
-    this.moveForward = false
-    this.moveLeft = false
-    this.moveRight = false
-    this.moveDown = false
-    this.moveUp = false
-
-  }
 
 }

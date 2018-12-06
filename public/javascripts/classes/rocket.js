@@ -24,15 +24,26 @@ export default class Rocket {
     }
 
 
-    constructor(x, y, z) {
+    constructor(x, y, z, d) {
         this._x = x
         this._y = y
         this._z = z
+
+        this.direction = d
+
+        this.isAlive = true
     }
 
     move(){
+        this.entity.position.y += this.direction.y * 5
+        this.entity.position.x += this.direction.x * 5
+        this.entity.position.z += this.direction.z * 5
+
         console.log(this.entity.position.z)
-        this.entity.position.z -= 1
+
+        if (this.entity.position.z < -150 ) {
+          this.isAlive = false
+        }
     }
 
     draw(scene) {
