@@ -9,10 +9,10 @@ var usersRouter = require('./routes/users');
 
 var app = express();
 
-var io = socket_io();
+let io = socket_io();
 app.io = io;
 
-let players = []
+let players = {}
 
 
 
@@ -25,12 +25,18 @@ io.on('connection', function(socket){
     id:socket.id,
     x:0,
     y:0,
-    z:0
+    z:0,
+    rotation:{
+        x:0,
+        y:0,
+        z:0
+    }
   }
-  players.push(player)
+  players[socket.id] = player
 
 
   console.log('emmiting players')
+    console.log(players)
   io.sockets.emit('players', players);
 
   socket.on('disconnect', function(){
@@ -39,18 +45,21 @@ io.on('connection', function(socket){
 
 
   socket.on('movement', (data) => {
-    players.map((player) => {
-      if (player.id == data.id) {
-        player.x = data.position.x
-        player.y = data.position.y
-        player.z = data.position.z
+
+      if (players[data.id]) {
+          players[data.id].x = data.position.x,
+          players[data.id].y = data.position.y,
+          players[data.id].z = data.position.z
+
+          players[data.id].rotation.x = data.rotation.x,
+          players[data.id].rotation.y = data.rotation.y,
+          players[data.id].rotation.z = data.rotation.z
+
+          console.log(players)
+
+          socket.broadcast.emit("movement", players[data.id])
       }
-    })
-
-    socket.emit("movement", players)
   })
-
-  //send players back later
 
 });
 

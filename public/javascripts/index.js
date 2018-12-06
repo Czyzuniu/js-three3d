@@ -14,7 +14,7 @@ const width =  window.innerWidth
 const height = window.innerHeight
 let stars = []
 let locked = true
-let allPlayers = []
+let allPlayers = {}
 
 
 
@@ -32,6 +32,7 @@ function init() {
     player.draw().then((obj) => {
         scene.add(obj)
         obj.add(camera)
+        scene.add(player.displayName)
     })
 
 
@@ -64,7 +65,14 @@ function animate() {
 
     requestAnimationFrame( animate );
 
+
     if (player.mesh) {
+        let rotation = {
+            x:player.mesh.rotation.x,
+            y:player.mesh.rotation.y,
+            z:player.mesh.rotation.z
+        }
+        socket.emit('movement', {position: player.mesh.position, rotation:rotation,id:player.id})
         player.update()
 
       player.rockets.forEach((rocket, index) => {
@@ -96,10 +104,6 @@ function createStars(amount, scene) {
 
 window.addEventListener('keydown', (event) => {
     player.move(event)
-
-    //change later
-
-    socket.emit('movement', {position: player.mesh.position, id:player.id})
 
     if (event.keyCode == 32) {
         player.shoot(scene)
@@ -148,31 +152,26 @@ window.play.addEventListener( 'click', function () {
 
 
 
-  socket.on('players', (players) => {
-    players.map((player) => {
-      if (socket.id != player.id) {
-        let otherPlayer = new Player(player.x, player.y, player.z, true,player.id)
-        otherPlayer.draw().then((obj) => {
-          allPlayers.push(otherPlayer)
-          scene.add(obj)
-        })
-      }
-    })
-
+  socket.on('players', (data) => {
+      console.log(data)
+      Object.keys(data).forEach((key) => {
+          if (socket.id != key) {
+              let otherPlayer = new Player(data[key].x, data[key].y, data[key].z,true,data[key].id)
+              otherPlayer.draw().then((obj) => {
+                  allPlayers[otherPlayer.id] = otherPlayer
+                  scene.add(obj)
+              })
+          }
+      });
   })
 
   socket.on("movement", (data) => {
-      console.log('myid', player.id)
-      for (let i of data) {
-        if (player.id != i.id) {
-          for (let y of allPlayers) {
-            //console.log(y, 2)
-            if (i.id == y.id) {
-              console.log(y, 'this should move')
-            }
-          }
+        let otherPlayer = allPlayers[data.id]
+        if (otherPlayer) {
+            otherPlayer.mesh.position.set(data.x, data.y, data.z)
+            otherPlayer.mesh.rotation.set(data.rotation.x, data.rotation.y, data.rotation.z)
         }
-      }
+
   })
 
 }, false );

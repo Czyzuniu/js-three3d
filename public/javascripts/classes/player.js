@@ -45,7 +45,7 @@ export default class Player {
     this.moveRight = false;
     this.moveUp = false
     this.moveDown = false
-    this.moveSpeed = 1500
+    this.moveSpeed = 3000
     this.id = socketId
 
     this.isOtherPlayer = isOtherPlayer
@@ -160,6 +160,7 @@ export default class Player {
 
 
       return new Promise((resolve) => {
+         // const fontLoader = new THREE.FontLoader();
           const loader = new THREE.OBJLoader();
           let textureLoader = new THREE.TextureLoader();
           textureLoader.load( '/images/textures/space_ship.jpg', (texture) => {
@@ -177,7 +178,18 @@ export default class Player {
                                node.material = material;
                            }
                        } );
-                      resolve(this.mesh)
+                       resolve(this.mesh)
+                       // fontLoader.load( '/font/Roboto_Black_Regular.json', ( font ) => {
+                       //     let displayName = new THREE.TextGeometry( 'Test!', {
+                       //         font: font,
+                       //         size: 80,
+                       //         height: 5,
+                       //         curveSegments: 12,
+                       //     } );
+                       //     this.displayName = displayName
+                       //
+                       // })
+
                   },
                   function ( xhr ) {
                       //console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
