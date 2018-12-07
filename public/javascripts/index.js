@@ -73,13 +73,18 @@ function animate() {
             z:player.mesh.rotation.z
         }
         socket.emit('movement', {position: player.mesh.position, rotation:rotation,id:player.id})
+        if (player.rockets.length) {
+          //console.log(player.rockets)
+         // socket.emit('shots', {rockets:player.rockets})
+        }
         player.update()
 
       player.rockets.forEach((rocket, index) => {
         rocket.move()
-        // if (!rocket.isAlive) {
-        //   player.rocket.splice(index, 1);
-        // }
+        if (!rocket.isAlive) {
+          player.rockets.splice(index, 1);
+          console.log(player.rockets)
+        }
       })
     }
 

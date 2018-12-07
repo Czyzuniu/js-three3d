@@ -61,6 +61,10 @@ io.on('connection', function(socket){
       }
   })
 
+  socket.on('shots', (data) => {
+    console.log(data)
+  })
+
 });
 
 

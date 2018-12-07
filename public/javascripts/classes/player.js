@@ -130,7 +130,7 @@ export default class Player {
 
   shoot(scene) {
       let direction = new THREE.Vector3( 0, 0, -1 ).applyQuaternion( this.mesh.quaternion );
-      let rocket = new Rocket(this.mesh.position.x, this.mesh.position.y, this.mesh.position.z, direction)
+      let rocket = new Rocket(this, direction)
 
       this.rockets.push(rocket)
       rocket.draw(scene)
