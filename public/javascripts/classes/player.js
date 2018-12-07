@@ -45,10 +45,11 @@ export default class Player {
     this.moveRight = false;
     this.moveUp = false
     this.moveDown = false
-    this.moveSpeed = 3000
+    this.moveSpeed = 1000
     this.id = socketId
-
+    this.rocketCounter = 0
     this.isOtherPlayer = isOtherPlayer
+
 
   }
 
@@ -64,6 +65,7 @@ export default class Player {
     // Set the velocity.x and velocity.z using the calculated time delta
     this.velocity.x -= this.velocity.x * 10.0 * delta;
     this.velocity.z -= this.velocity.z * 10.0 * delta;
+    this.velocity.y -= this.velocity.y * 10.0 * delta;
 
     // As velocity.y is our "gravity," calculate delta
     //this.velocity.y -= 9.8 * 100.0 * delta; // 100.0 = mass
@@ -86,17 +88,16 @@ export default class Player {
       this.mesh.rotateOnAxis( new THREE.Vector3(0,1,0), -rotateAngle);
     }
 
-    // if (this.moveUp ) {
-    //   this.velocity.y += this.moveSpeed  * delta;
-    // }
+    if (this.moveUp ) {
+      this.velocity.y += this.moveSpeed  * delta;
+    }
 
-    // if (this.moveDown ) {
-    //   this.velocity.y -= this.moveSpeed  * delta;
-    // }
+    if (this.moveDown ) {
+      this.velocity.y -= this.moveSpeed  * delta;
+    }
 
 
     this.mesh.translateZ(this.velocity.z * delta )
-    this.mesh.translateX(this.velocity.x * delta )
     this.mesh.translateY(this.velocity.y * delta )
 
 
@@ -122,6 +123,9 @@ export default class Player {
           this.moveRight = true;
           break;
         case 69: // e
+          this.moveUp = true;
+          break;
+        case 81: // q
           this.moveDown = true;
           break;
       }
@@ -130,10 +134,13 @@ export default class Player {
 
   shoot(scene) {
       let direction = new THREE.Vector3( 0, 0, -1 ).applyQuaternion( this.mesh.quaternion );
-      let rocket = new Rocket(this, direction)
+      let rocketId = `${this.id}${this.rocketCounter}`
+      let rocket = new Rocket(this.mesh.position.x, this.mesh.position.y, this.mesh.position.z, direction, rocketId)
 
       this.rockets.push(rocket)
       rocket.draw(scene)
+
+      this.rocketCounter++
   }
 
   draw() {

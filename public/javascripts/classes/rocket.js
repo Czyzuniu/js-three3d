@@ -24,31 +24,31 @@ export default class Rocket {
     }
 
 
-    constructor(player,d) {
-        this._x = player.mesh.position.x
-        this._y = player.mesh.position.y
-        this._z = player.mesh.position.z
-        this.player = player
-        this.distanceTravelled = 1
-
+    constructor(x,y,z,d,id) {
+        this._x = x
+        this._y = y
+        this._z = z
+        this.distanceTravelled = 0
         this.direction = d
-
-        this.velocity = 3
-
+        this.velocity = 5
         this.isAlive = true
+
+        this.id = id
     }
 
     move(){
+
+        // let time = performance.now();
+        // // Create a delta value based on current time
+        // let delta = ( time - this.prevTime ) / 1000;
+
         this.entity.position.y += this.direction.y * this.velocity
         this.entity.position.x += this.direction.x * this.velocity
         this.entity.position.z += this.direction.z * this.velocity
 
         this.distanceTravelled++
 
-        //console.log(this.entity.position.z < -50 - this.player.mesh.position.z)
-      console.log(this.distanceTravelled)
-
-        let maximumDistance = 50 * this.velocity
+        let maximumDistance = 50
 
 
         if (this.distanceTravelled >= maximumDistance) {
@@ -72,6 +72,7 @@ export default class Rocket {
         let material = new THREE.MeshBasicMaterial({color: 0x008000});
         let geometry = new THREE.SphereGeometry(1, 2, 2);
         this.entity = new THREE.Mesh(geometry, material);
+        this.entity.name = this.id
         this.entity.position.set(this.x,this.y,this.z)
 
         //this.initialPlayerShotPosition = new THREE.Vector3((this.x,this.y,this.z)

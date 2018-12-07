@@ -17,6 +17,7 @@ let players = {}
 
 
 
+
 io.on('connection', function(socket){
   console.log('a user connected', socket.id);
 
@@ -34,9 +35,6 @@ io.on('connection', function(socket){
   }
   players[socket.id] = player
 
-
-  console.log('emmiting players')
-    console.log(players)
   io.sockets.emit('players', players);
 
   socket.on('disconnect', function(){
@@ -55,14 +53,12 @@ io.on('connection', function(socket){
           players[data.id].rotation.y = data.rotation.y,
           players[data.id].rotation.z = data.rotation.z
 
-          console.log(players)
-
           socket.broadcast.emit("movement", players[data.id])
       }
   })
 
-  socket.on('shots', (data) => {
-    console.log(data)
+  socket.on('rocket', (data) => {
+      socket.broadcast.emit("rockets", data)
   })
 
 });
