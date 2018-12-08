@@ -2,7 +2,7 @@
 'use strict'
 
 
-import World from "./classes/world.js";
+import Planet from "./classes/planet.js";
 import Star from "./classes/star.js"
 import Player from "./classes/player.js"
 import Rocket from "./classes/rocket.js";
@@ -16,41 +16,39 @@ const height = window.innerHeight
 let stars = []
 let locked = true
 let allPlayers = {}
+let planets = ['WORLD', 'MOON', 'MARS']
 
 
 
 function init() {
-    world = new World(100)
-
-    camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 2000);
+    camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 55000);
     camera.position.set(0,4,15);
     scene = new THREE.Scene();
 
+    for (let i of planets) {
+        let planet = new Planet(i)
+        scene.planets = []
+        planet.draw().then((mesh) => {
+            scene.planets.push(planet)
+            scene.add(mesh);
+        })
+    }
     player = new Player(0,0,0, false, socketId)
-
 
     player.draw().then((obj) => {
         scene.add(obj)
         obj.add(camera)
-        scene.add(player.displayName)
+        obj.scale.set(0.5, 0.5, 0.5)
+        //controls = new THREE.OrbitControls( camera, renderer.domElement );
+        //cene.add(player.displayName)
     })
-
-    //controls = new THREE.PointerLockControls(camera)
-
     let light = new THREE.AmbientLight(0xffffff, 100);
     scene.add(light);
-
-    // world.draw().then((mesh) => {
-    //     scene.add(mesh);
-    // })
-
-    createStars(1000, scene)
-
+    createStars(5000, scene)
     renderer = new THREE.WebGLRenderer({antialias: true});
     renderer.setSize(width, height);
     document.body.appendChild(renderer.domElement);
 
-   // scene.add(controls.getObject())
 }
 
 function generateRandomNumber(min , max) {
@@ -58,8 +56,13 @@ function generateRandomNumber(min , max) {
 }
 
 function animate() {
-    requestAnimationFrame( animate );
+    for (let p of scene.planets) {
+        if (p.entity) {
+            p.rotateAround(0.001)
+        }
+    }
 
+    requestAnimationFrame( animate );
     if (player.mesh) {
         let rotation = {
             x:player.mesh.rotation.x,
@@ -75,7 +78,6 @@ function animate() {
               player.rockets.splice(index, 1);
               scene.remove(scene.getObjectByName(rocket.id));
             } else {
-                console.log(rocket.entity.position)
                 socket.emit('rocket', {position:rocket.entity.position, direction:rocket.direction, id:rocket.id, playerId:player.id})
             }
         })
@@ -86,9 +88,9 @@ function animate() {
 
 function createStars(amount, scene) {
     for (let i = 0; i < amount; i++) {
-        let x = generateRandomNumber(-500, 500)
-        let y = generateRandomNumber(-500, 500)
-        let z = generateRandomNumber(5000,-5000)
+        let x = generateRandomNumber(-5000, 5000)
+        let y = generateRandomNumber(-5000, 5000)
+        let z = generateRandomNumber(-5000, 5000)
         let star = new Star(x,y,z)
         scene.add(star.draw())
     }
@@ -97,7 +99,6 @@ function createStars(amount, scene) {
 
 window.addEventListener('keydown', (event) => {
     player.move(event)
-
     if (event.keyCode == 32) {
         player.shoot(scene)
     }
@@ -105,19 +106,19 @@ window.addEventListener('keydown', (event) => {
 
 
 window.play.addEventListener( 'click', function () {
-
     socket = io();
     socket.on('connect', function() {
-      socketId = socket.io.engine.id;
-
-      document.body.requestPointerLock()
-      window.blocker.style.display = 'none'
-
-      init();
-      animate();
+        socketId = socket.io.engine.id;
+        document.body.requestPointerLock()
+        window.blocker.style.display = 'none'
+        init();
+        animate();
     })
 
-  window.addEventListener('keyup', (event) => {
+    socket.emit('init', {name:window.userName.value})
+
+
+    window.addEventListener('keyup', (event) => {
     switch (event.keyCode) {
       case 87: // w
         player.moveForward = false
@@ -138,10 +139,7 @@ window.play.addEventListener( 'click', function () {
        player.moveDown = false;
         break;
     }
-  })
-
-    //socket.emit("init", )
-
+    })
 
 
   socket.on('players', (data) => {

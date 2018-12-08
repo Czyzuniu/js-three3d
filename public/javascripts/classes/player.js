@@ -45,10 +45,12 @@ export default class Player {
     this.moveRight = false;
     this.moveUp = false
     this.moveDown = false
-    this.moveSpeed = 1000
+    this.moveSpeed = 4000
     this.id = socketId
     this.rocketCounter = 0
     this.isOtherPlayer = isOtherPlayer
+
+
 
 
   }

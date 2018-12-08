@@ -48,7 +48,7 @@ export default class Rocket {
 
         this.distanceTravelled++
 
-        let maximumDistance = 50
+        let maximumDistance = 50 * 5
 
 
         if (this.distanceTravelled >= maximumDistance) {
